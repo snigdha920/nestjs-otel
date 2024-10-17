@@ -9,7 +9,7 @@ const recordException = (span: ApiSpan, error: any) => {
 export function Span(name?: string, options: SpanOptions = {}) {
   return (target: any, propertyKey: PropertyKey, propertyDescriptor: PropertyDescriptor) => {
     const originalFunction = propertyDescriptor.value;
-    const wrappedFunction = function PropertyDescriptor(...args: any[]) {
+    const wrappedFunction = function (...args: any[]) {
       const tracer = trace.getTracer('default');
       const spanName = name || `${target.constructor.name}.${String(propertyKey)}`;
 
@@ -44,6 +44,10 @@ export function Span(name?: string, options: SpanOptions = {}) {
       });
     };
 
+    Object.defineProperty(wrappedFunction, 'name', {
+      value: originalFunction.name,
+      configurable: true,
+    });
     propertyDescriptor.value = wrappedFunction;
 
     copyMetadataFromFunctionToFunction(originalFunction, wrappedFunction);
